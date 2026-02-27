@@ -28,10 +28,10 @@ npm install
 ### 2. Start the broker
 
 ```bash
-node mcp-bridge/ws-broker.mjs
+bash mcp-bridge/start.sh
 ```
 
-Or let the MCP server auto-start it.
+This starts the broker in the background on `localhost:18765`. The script is idempotent — it won't start a second instance if one is already running.
 
 ### 3. Load the plugin in Figma
 
@@ -82,7 +82,7 @@ Included design system with CSS tokens and Figma variables:
 - **Colors**: Primary (50-900), Neutral, Semantic (success, warning, error, info)
 - **Typography**: 8 scales (xs to 4xl)
 - **Spacing**: 10 steps (4px to 64px)
-- **Components**: Buttons (4 variants, 3 sizes), Cards (vertical + horizontal), Badges
+- **Components**: Buttons (4 variants, 3 sizes), Cards (vertical + horizontal), Badges, Form inputs (text, email, password, number, date, textarea, select, checkbox, radio, toggle)
 
 ### Files
 
@@ -118,7 +118,8 @@ figma/
 │   ├── package.json            # Dependencies
 │   ├── protocol.mjs            # Shared constants
 │   ├── ws-broker.mjs           # HTTP + WebSocket broker
-│   └── mcp-server.mjs          # MCP server (13 tools)
+│   ├── mcp-server.mjs          # MCP server (13 tools)
+│   └── start.sh                # Broker startup script
 └── docs/
     ├── 01-paso-a-paso.md       # Step-by-step history
     ├── 02-instrucciones-para-chat.md  # Instructions for AI chats
@@ -135,6 +136,10 @@ When modifying plugin code, remember:
 - **No** nullish coalescing (`val ?? def`) — use ternary
 - `layoutSizingHorizontal = "FILL"` must be set **after** `appendChild()`
 - Font loading requires try-catch fallback chain
+
+## CLAUDE.md
+
+The project includes a `CLAUDE.md` file that Claude Code reads automatically at the start of each session. It contains instructions to auto-start the broker, connect to the plugin, and all the rules for the Figma plugin sandbox.
 
 ## License
 
