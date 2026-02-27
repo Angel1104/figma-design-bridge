@@ -58,6 +58,17 @@
 - [ ] Dark mode (second mode in Figma variables)
 - [ ] Responsive breakpoints
 
+## MCP Bridge
+
+| Componente | Archivo | Descripción |
+|---|---|---|
+| Protocolo | `mcp-bridge/protocol.mjs` | Constantes compartidas |
+| WS Broker | `mcp-bridge/ws-broker.mjs` | Relay WebSocket en `localhost:18765` |
+| MCP Server | `mcp-bridge/mcp-server.mjs` | 13 tools MCP via stdio |
+| Plugin UI | `figma-plugin/ui.html` | WebSocket client (relay) |
+
+13 tools disponibles: `connect_to_figma`, `create_frame`, `create_rectangle`, `create_text`, `create_ellipse`, `modify_node`, `delete_node`, `get_node`, `get_page_structure`, `set_variable`, `build_component`, `scroll_to_node`, `build_design_system`
+
 ## Archivos del Proyecto
 
 | Archivo | Propósito | Auto-generado |
@@ -67,12 +78,21 @@
 | `index.html` | Showcase visual | No (edición manual) |
 | `figma-tokens.json` | Mapeo Figma ↔ CSS | No (fuente de verdad) |
 | `sync-figma.js` | Generador de tokens.css | No |
-| `figma-plugin/manifest.json` | Config del plugin | No |
-| `figma-plugin/code.js` | Generador de Figma | No (se actualiza por chat) |
+| `figma-plugin/manifest.json` | Config del plugin (con ui, networkAccess) | No |
+| `figma-plugin/code.js` | Plugin persistente (bridge + builders) | No (se actualiza por chat) |
+| `figma-plugin/ui.html` | WebSocket client del plugin | No |
+| `mcp-bridge/protocol.mjs` | Constantes del protocolo | No |
+| `mcp-bridge/ws-broker.mjs` | WebSocket broker | No |
+| `mcp-bridge/mcp-server.mjs` | MCP server (13 tools) | No |
 
 ## Cómo seguir
 
 Para agregar componentes nuevos, decirle al chat:
 > "Agrega [componente] al design system"
 
-El chat actualizará CSS + plugin, el usuario ejecuta el plugin en Figma.
+El chat actualizará CSS + plugin. Con el bridge activo, Claude Code puede crear el componente directamente en Figma.
+
+Para construir pantallas nuevas en Figma:
+> "Construye una pantalla de login en Figma usando nuestro design system"
+
+Claude Code usará el figma-bridge para crear frames, textos, botones, etc. directamente.

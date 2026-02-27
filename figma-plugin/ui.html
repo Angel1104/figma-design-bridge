@@ -1,0 +1,133 @@
+<html>
+<body>
+<div id="status" style="font-family:sans-serif;font-size:13px;padding:12px;color:#666;">
+  Starting...
+</div>
+<script>
+// HTTP polling bridge client — ES5 compatible (Figma plugin sandbox)
+// Uses fetch + polling instead of WebSocket (blocked by Figma sandbox)
+
+var BROKER_URL = "http://localhost:18765";
+var channelId = "";
+var pollTimer = null;
+var pollInterval = 300; // ms between polls
+var registered = false;
+var statusEl = document.getElementById("status");
+
+function generateChannelId() {
+  var chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  var id = "ch_";
+  for (var i = 0; i < 8; i++) {
+    id += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return id;
+}
+
+function setStatus(text, color) {
+  statusEl.textContent = text;
+  statusEl.style.color = color || "#666";
+}
+
+// Register with the broker
+function register() {
+  channelId = generateChannelId();
+  setStatus("Registering " + channelId + "...", "#F59E0B");
+
+  fetch(BROKER_URL + "/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ channel: channelId })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.registered) {
+      registered = true;
+      var peerStatus = data.peerConnected ? " (controller connected)" : " (waiting for controller)";
+      setStatus("Channel: " + channelId + peerStatus, "#10B981");
+      // Notify code.js
+      parent.postMessage({
+        pluginMessage: { type: "bridge-connected", channel: channelId }
+      }, "*");
+      // Start polling
+      startPolling();
+    } else {
+      setStatus("Registration failed: " + JSON.stringify(data), "#EF4444");
+    }
+  })
+  .catch(function(err) {
+    setStatus("Cannot reach broker: " + err.message, "#EF4444");
+    // Retry in 3s
+    setTimeout(register, 3000);
+  });
+}
+
+// Poll for commands from the controller
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(poll, pollInterval);
+}
+
+function poll() {
+  if (!registered) return;
+
+  fetch(BROKER_URL + "/poll?channel=" + encodeURIComponent(channelId))
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.messages && data.messages.length > 0) {
+      for (var i = 0; i < data.messages.length; i++) {
+        var msg = data.messages[i];
+        if (msg.type === "command") {
+          parent.postMessage({
+            pluginMessage: {
+              type: "command",
+              id: msg.id,
+              action: msg.action,
+              params: msg.params || {}
+            }
+          }, "*");
+        } else if (msg.type === "peer-connected") {
+          setStatus("Channel: " + channelId + " (controller connected)", "#10B981");
+          parent.postMessage({ pluginMessage: { type: "peer-connected" } }, "*");
+        } else if (msg.type === "peer-disconnected") {
+          setStatus("Channel: " + channelId + " (controller disconnected)", "#F59E0B");
+          parent.postMessage({ pluginMessage: { type: "peer-disconnected" } }, "*");
+        }
+      }
+    }
+  })
+  .catch(function(err) {
+    // Silent — broker might be temporarily unavailable
+  });
+}
+
+// Send response back to broker (from code.js)
+function sendResponse(message) {
+  fetch(BROKER_URL + "/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ channel: channelId, message: message })
+  }).catch(function(err) {
+    // Silent
+  });
+}
+
+// Listen for responses from code.js
+window.onmessage = function(event) {
+  var msg = event.data && event.data.pluginMessage;
+  if (!msg) return;
+
+  if (msg.type === "command-response") {
+    sendResponse({
+      type: "command-response",
+      id: msg.id,
+      result: msg.result || null,
+      error: msg.error || null
+    });
+  }
+};
+
+// Start
+register();
+</script>
+</body>
+</html>

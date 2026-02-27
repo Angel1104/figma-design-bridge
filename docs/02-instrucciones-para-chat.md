@@ -11,15 +11,25 @@ Están conectados a través de:
 - `sync-figma.js` — Script que regenera `tokens.css` desde el JSON
 - `figma-plugin/code.js` — Plugin que crea/actualiza todo en Figma
 
-## MCP de Figma
+## MCPs de Figma
 
-Estás conectado al MCP de Figma Desktop con estas herramientas:
+### figma-desktop (solo lectura)
 - `get_design_context` — Leer contexto de diseño de un nodo
 - `get_screenshot` — Captura de pantalla de un nodo
 - `get_variable_defs` — Variables aplicadas a un nodo
 - `get_metadata` — Estructura XML de nodos
 
-**IMPORTANTE**: El MCP es SOLO LECTURA. No puedes crear ni modificar contenido en Figma directamente.
+### figma-bridge (lectura/escritura)
+- `connect_to_figma` — Conectar al plugin vía channel ID
+- `create_frame`, `create_rectangle`, `create_text`, `create_ellipse` — Crear nodos
+- `modify_node`, `delete_node` — Modificar/eliminar nodos
+- `get_node`, `get_page_structure` — Leer nodos
+- `set_variable` — Crear/actualizar variables
+- `build_component` — Construir componentes del design system
+- `build_design_system` — Ejecutar builder completo
+- `scroll_to_node` — Scroll viewport
+
+**IMPORTANTE**: Para usar figma-bridge, primero el usuario debe ejecutar el plugin en Figma y darte el channel ID. Luego llama `connect_to_figma`.
 
 ## Flujo de Trabajo
 
@@ -34,12 +44,15 @@ Estás conectado al MCP de Figma Desktop con estas herramientas:
 
 3. **Actualizar el plugin** (`figma-plugin/code.js`):
    - Crear una función `buildNuevoComponente()` siguiendo el patrón existente
-   - Agregar la llamada en `main()` dentro del frame `master`
-   - El usuario ejecuta el plugin manualmente (1 click)
+   - Agregar como case en `handleCommand()` bajo `build_component`
+   - Agregar la llamada en `buildFullDesignSystem()` dentro del frame `master`
 
-4. **Verificar en Figma**:
-   - Pedir al usuario que seleccione el frame "Design System"
-   - Usar `get_screenshot` para verificar el resultado
+4. **Crear en Figma** (dos opciones):
+   - **Via bridge**: Llamar `build_component` o `build_design_system` desde Claude Code
+   - **Manual**: El usuario ejecuta el plugin en Figma (1 click)
+
+5. **Verificar en Figma**:
+   - Usar `get_screenshot` (figma-desktop) para verificar el resultado
 
 ### Para sincronizar tokens de Figma → Código:
 
@@ -91,13 +104,20 @@ figma/
 ├── figma-tokens.json       ← Mapeo Figma ↔ CSS (fuente de verdad)
 ├── sync-figma.js           ← Script de sincronización JSON → CSS
 ├── figma-plugin/
-│   ├── manifest.json       ← Manifiesto del plugin
-│   └── code.js             ← Código del plugin (genera todo en Figma)
+│   ├── manifest.json       ← Manifiesto del plugin (con ui y networkAccess)
+│   ├── code.js             ← Plugin persistente (bridge + builders)
+│   └── ui.html             ← WebSocket client (relay broker ↔ code.js)
+├── mcp-bridge/
+│   ├── package.json        ← Dependencias del bridge
+│   ├── protocol.mjs        ← Constantes compartidas
+│   ├── ws-broker.mjs       ← WebSocket broker (localhost:18765)
+│   └── mcp-server.mjs      ← MCP server (stdio, 13 tools)
 └── docs/
     ├── 01-paso-a-paso.md   ← Cronología de lo que hicimos
     ├── 02-instrucciones-para-chat.md  ← ESTE ARCHIVO
     ├── 03-como-lo-hicimos.md          ← Detalles técnicos
-    └── 04-estado-actual.md            ← Qué tenemos hoy
+    ├── 04-estado-actual.md            ← Qué tenemos hoy
+    └── 05-mcp-bridge.md              ← Documentación del bridge
 ```
 
 ## Documentación

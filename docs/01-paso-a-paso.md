@@ -65,3 +65,37 @@ Flujo establecido para agregar componentes:
 2. Actualizar `index.html` con el showcase
 3. Actualizar el plugin (`code.js`) con la función de construcción
 4. Ejecutar el plugin en Figma (1 click)
+
+## Sesión 2 — MCP Bridge (control remoto de Figma)
+
+### Paso 6: Investigación de automatización
+
+Se investigó cómo automatizar la creación de diseños en Figma desde Claude Code:
+- El MCP de Figma Desktop es **solo lectura** (screenshots, metadata, variables)
+- La feature oficial "Code to Canvas" solo existe en el MCP remoto
+- El proyecto `claude-talk-to-figma-mcp` demostró el patrón Plugin + WebSocket
+
+### Paso 7: Construir el MCP Bridge
+
+Se creó un sistema de 3 piezas para que Claude Code pueda crear y modificar diseños directamente:
+
+```
+Claude Code ←(stdio)→ MCP Server ←(WebSocket)→ WS Broker ←(WebSocket)→ Plugin UI ←(postMessage)→ Plugin code.js → Figma API
+```
+
+Archivos creados:
+- **`mcp-bridge/protocol.mjs`** — Constantes compartidas (puerto, tipos de mensaje, etc.)
+- **`mcp-bridge/ws-broker.mjs`** — WebSocket broker en `localhost:18765` con canales y heartbeat
+- **`mcp-bridge/mcp-server.mjs`** — MCP server (13 tools) que auto-inicia el broker
+- **`figma-plugin/ui.html`** — WebSocket client en el thread UI del plugin
+- **`figma-plugin/code.js`** — Reestructurado: bridge persistente con 13 command handlers + todos los builders existentes
+- **`figma-plugin/manifest.json`** — Actualizado con `ui` y `networkAccess`
+- **`docs/05-mcp-bridge.md`** — Documentación completa del bridge
+
+### Paso 8: Upgrade del plugin
+
+El plugin pasó de one-shot (ejecutar y cerrar) a persistente:
+- Se abre la UI hidden (1x1 px) para acceso a WebSocket
+- El plugin escucha comandos indefinidamente
+- Cada comando se ejecuta y la respuesta se envía de vuelta
+- Mantiene todos los builders existentes como comandos invocables

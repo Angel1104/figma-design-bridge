@@ -1,3 +1,4 @@
 .DS_Store
 node_modules/
+mcp-bridge/node_modules/
 .claude/

@@ -1,9 +1,15 @@
 {
-  "name": "Design System Token Generator",
+  "name": "Design System Bridge",
   "id": "design-system-token-generator",
   "api": "1.0.0",
   "main": "code.js",
+  "ui": "ui.html",
   "capabilities": [],
   "enableProposedApi": false,
-  "editorType": ["figma", "dev"]
+  "editorType": ["figma", "dev"],
+  "networkAccess": {
+    "allowedDomains": ["none"],
+    "reasoning": "Connects to local WebSocket broker for MCP bridge",
+    "devAllowedDomains": ["http://localhost:18765"]
+  }
 }
