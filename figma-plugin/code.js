@@ -515,6 +515,332 @@ function buildHorizontalCardsSection() {
 
 // ─── Spacing ─────────────────────────────────────────────────
 
+// ─── Form Inputs ─────────────────────────────────────────
+
+function buildInputField(label, placeholder, state, width) {
+  var w = width || 280;
+  var group = figma.createFrame();
+  group.name = "input-" + label.toLowerCase().replace(/\s/g, "-");
+  group.layoutMode = "VERTICAL";
+  group.itemSpacing = 4;
+  group.fills = [];
+  group.layoutSizingHorizontal = "HUG";
+  group.layoutSizingVertical = "HUG";
+
+  // Label
+  group.appendChild(createText(label, 14, "#374151"));
+
+  // Input frame
+  var input = figma.createFrame();
+  input.name = "input-field";
+  input.layoutMode = "HORIZONTAL";
+  input.counterAxisAlignItems = "CENTER";
+  input.paddingLeft = 16; input.paddingRight = 16;
+  input.paddingTop = 12; input.paddingBottom = 12;
+  input.cornerRadius = 8;
+  input.resize(w, 44);
+
+  var borderColor = "#D1D5DB";
+  var bgColor = "#FFFFFF";
+  var textColor = "#9CA3AF";
+
+  if (state === "error") {
+    borderColor = "#EF4444";
+    textColor = "#111827";
+  } else if (state === "success") {
+    borderColor = "#10B981";
+    textColor = "#111827";
+  } else if (state === "disabled") {
+    bgColor = "#F3F4F6";
+    textColor = "#9CA3AF";
+  } else if (state === "filled") {
+    textColor = "#111827";
+  }
+
+  input.fills = solidPaint(bgColor);
+  input.strokes = solidPaint(borderColor);
+  input.strokeWeight = 1;
+
+  var placeholderText = (state === "filled" || state === "error" || state === "success") ? placeholder : placeholder;
+  input.appendChild(createText(placeholderText, 14, textColor));
+
+  group.appendChild(input);
+
+  // Helper/error text
+  if (state === "error") {
+    group.appendChild(createText("This field is required", 12, "#EF4444"));
+  } else if (state === "success") {
+    group.appendChild(createText("Looks good!", 12, "#10B981"));
+  } else if (state !== "disabled") {
+    group.appendChild(createText("Helper text", 12, "#9CA3AF"));
+  }
+
+  return group;
+}
+
+function buildTextareaField(label, placeholder) {
+  var group = figma.createFrame();
+  group.name = "textarea-" + label.toLowerCase();
+  group.layoutMode = "VERTICAL";
+  group.itemSpacing = 4;
+  group.fills = [];
+  group.layoutSizingHorizontal = "HUG";
+  group.layoutSizingVertical = "HUG";
+
+  group.appendChild(createText(label, 14, "#374151"));
+
+  var area = figma.createFrame();
+  area.name = "textarea-field";
+  area.layoutMode = "VERTICAL";
+  area.paddingLeft = 16; area.paddingRight = 16;
+  area.paddingTop = 12; area.paddingBottom = 12;
+  area.cornerRadius = 8;
+  area.resize(280, 100);
+  area.fills = solidPaint("#FFFFFF");
+  area.strokes = solidPaint("#D1D5DB");
+  area.strokeWeight = 1;
+  area.appendChild(createText(placeholder, 14, "#9CA3AF"));
+
+  group.appendChild(area);
+  return group;
+}
+
+function buildSelectField(label, placeholder) {
+  var group = figma.createFrame();
+  group.name = "select-" + label.toLowerCase();
+  group.layoutMode = "VERTICAL";
+  group.itemSpacing = 4;
+  group.fills = [];
+  group.layoutSizingHorizontal = "HUG";
+  group.layoutSizingVertical = "HUG";
+
+  group.appendChild(createText(label, 14, "#374151"));
+
+  var sel = figma.createFrame();
+  sel.name = "select-field";
+  sel.layoutMode = "HORIZONTAL";
+  sel.primaryAxisAlignItems = "SPACE_BETWEEN";
+  sel.counterAxisAlignItems = "CENTER";
+  sel.paddingLeft = 16; sel.paddingRight = 16;
+  sel.paddingTop = 12; sel.paddingBottom = 12;
+  sel.cornerRadius = 8;
+  sel.resize(280, 44);
+  sel.fills = solidPaint("#FFFFFF");
+  sel.strokes = solidPaint("#D1D5DB");
+  sel.strokeWeight = 1;
+  sel.appendChild(createText(placeholder, 14, "#9CA3AF"));
+  sel.appendChild(createText("▼", 10, "#6B7280"));
+
+  group.appendChild(sel);
+  return group;
+}
+
+function buildCheckbox(label, checked) {
+  var row = figma.createFrame();
+  row.name = "checkbox-" + label.toLowerCase();
+  row.layoutMode = "HORIZONTAL";
+  row.itemSpacing = 8;
+  row.counterAxisAlignItems = "CENTER";
+  row.fills = [];
+  row.layoutSizingHorizontal = "HUG";
+  row.layoutSizingVertical = "HUG";
+
+  var box = figma.createRectangle();
+  box.resize(18, 18);
+  box.cornerRadius = 4;
+  if (checked) {
+    box.fills = solidPaint("#4F46E5");
+  } else {
+    box.fills = solidPaint("#FFFFFF");
+    box.strokes = solidPaint("#D1D5DB");
+    box.strokeWeight = 1.5;
+  }
+
+  row.appendChild(box);
+  row.appendChild(createText(label, 14, "#374151"));
+  return row;
+}
+
+function buildRadio(label, checked) {
+  var row = figma.createFrame();
+  row.name = "radio-" + label.toLowerCase();
+  row.layoutMode = "HORIZONTAL";
+  row.itemSpacing = 8;
+  row.counterAxisAlignItems = "CENTER";
+  row.fills = [];
+  row.layoutSizingHorizontal = "HUG";
+  row.layoutSizingVertical = "HUG";
+
+  var circle = figma.createEllipse();
+  circle.resize(18, 18);
+  if (checked) {
+    circle.fills = solidPaint("#4F46E5");
+    circle.strokes = solidPaint("#4F46E5");
+    circle.strokeWeight = 5;
+  } else {
+    circle.fills = solidPaint("#FFFFFF");
+    circle.strokes = solidPaint("#D1D5DB");
+    circle.strokeWeight = 1.5;
+  }
+
+  row.appendChild(circle);
+  row.appendChild(createText(label, 14, "#374151"));
+  return row;
+}
+
+function buildToggle(label, on) {
+  var row = figma.createFrame();
+  row.name = "toggle-" + label.toLowerCase();
+  row.layoutMode = "HORIZONTAL";
+  row.itemSpacing = 12;
+  row.counterAxisAlignItems = "CENTER";
+  row.fills = [];
+  row.layoutSizingHorizontal = "HUG";
+  row.layoutSizingVertical = "HUG";
+
+  // Track
+  var track = figma.createFrame();
+  track.name = "track";
+  track.resize(44, 24);
+  track.cornerRadius = 9999;
+  track.fills = on ? solidPaint("#4F46E5") : solidPaint("#D1D5DB");
+
+  // Thumb
+  var thumb = figma.createEllipse();
+  thumb.resize(20, 20);
+  thumb.fills = solidPaint("#FFFFFF");
+  track.appendChild(thumb);
+  thumb.x = on ? 22 : 2;
+  thumb.y = 2;
+
+  row.appendChild(track);
+  row.appendChild(createText(label, 14, "#374151"));
+  return row;
+}
+
+function buildInputsSection() {
+  var s = figma.createFrame();
+  s.name = "Form Inputs";
+  s.layoutMode = "VERTICAL";
+  s.itemSpacing = 32;
+  s.fills = [];
+  s.layoutSizingHorizontal = "HUG";
+  s.layoutSizingVertical = "HUG";
+
+  s.appendChild(createSectionTitle("Form Inputs"));
+
+  // --- Text Inputs Row ---
+  s.appendChild(createText("Text Inputs", 16, "#1F2937"));
+  var inputRow = figma.createFrame();
+  inputRow.name = "Text Inputs";
+  inputRow.layoutMode = "HORIZONTAL";
+  inputRow.itemSpacing = 24;
+  inputRow.fills = [];
+  inputRow.layoutSizingHorizontal = "HUG";
+  inputRow.layoutSizingVertical = "HUG";
+  inputRow.appendChild(buildInputField("Default", "Enter text...", "default"));
+  inputRow.appendChild(buildInputField("Required *", "Required field...", "default"));
+  inputRow.appendChild(buildInputField("Disabled", "Disabled...", "disabled"));
+  s.appendChild(inputRow);
+
+  // --- States Row ---
+  s.appendChild(createText("States", 16, "#1F2937"));
+  var stateRow = figma.createFrame();
+  stateRow.name = "States";
+  stateRow.layoutMode = "HORIZONTAL";
+  stateRow.itemSpacing = 24;
+  stateRow.fills = [];
+  stateRow.layoutSizingHorizontal = "HUG";
+  stateRow.layoutSizingVertical = "HUG";
+  stateRow.appendChild(buildInputField("Error", "Invalid value", "error"));
+  stateRow.appendChild(buildInputField("Success", "Valid value", "success"));
+  stateRow.appendChild(buildInputField("Filled", "John Doe", "filled"));
+  s.appendChild(stateRow);
+
+  // --- Other Types ---
+  s.appendChild(createText("Input Types", 16, "#1F2937"));
+  var typeRow = figma.createFrame();
+  typeRow.name = "Types";
+  typeRow.layoutMode = "HORIZONTAL";
+  typeRow.itemSpacing = 24;
+  typeRow.fills = [];
+  typeRow.layoutSizingHorizontal = "HUG";
+  typeRow.layoutSizingVertical = "HUG";
+  typeRow.appendChild(buildInputField("Email", "you@example.com", "default"));
+  typeRow.appendChild(buildInputField("Password", "••••••••", "filled"));
+  typeRow.appendChild(buildSelectField("Select", "Choose an option..."));
+  s.appendChild(typeRow);
+
+  var typeRow2 = figma.createFrame();
+  typeRow2.name = "Types 2";
+  typeRow2.layoutMode = "HORIZONTAL";
+  typeRow2.itemSpacing = 24;
+  typeRow2.fills = [];
+  typeRow2.layoutSizingHorizontal = "HUG";
+  typeRow2.layoutSizingVertical = "HUG";
+  typeRow2.appendChild(buildTextareaField("Textarea", "Write something..."));
+  typeRow2.appendChild(buildInputField("Number", "0", "default"));
+  typeRow2.appendChild(buildInputField("Search", "Search...", "default"));
+  s.appendChild(typeRow2);
+
+  // --- Checkboxes, Radios, Toggles ---
+  s.appendChild(createText("Checkboxes, Radios & Toggles", 16, "#1F2937"));
+  var controlRow = figma.createFrame();
+  controlRow.name = "Controls";
+  controlRow.layoutMode = "HORIZONTAL";
+  controlRow.itemSpacing = 48;
+  controlRow.fills = [];
+  controlRow.layoutSizingHorizontal = "HUG";
+  controlRow.layoutSizingVertical = "HUG";
+
+  // Checkboxes
+  var checks = figma.createFrame();
+  checks.name = "Checkboxes";
+  checks.layoutMode = "VERTICAL";
+  checks.itemSpacing = 12;
+  checks.fills = [];
+  checks.layoutSizingHorizontal = "HUG";
+  checks.layoutSizingVertical = "HUG";
+  checks.appendChild(createText("Checkboxes", 13, "#6B7280"));
+  checks.appendChild(buildCheckbox("Option A", true));
+  checks.appendChild(buildCheckbox("Option B", false));
+  checks.appendChild(buildCheckbox("Option C", true));
+  controlRow.appendChild(checks);
+
+  // Radios
+  var radios = figma.createFrame();
+  radios.name = "Radios";
+  radios.layoutMode = "VERTICAL";
+  radios.itemSpacing = 12;
+  radios.fills = [];
+  radios.layoutSizingHorizontal = "HUG";
+  radios.layoutSizingVertical = "HUG";
+  radios.appendChild(createText("Radio Buttons", 13, "#6B7280"));
+  radios.appendChild(buildRadio("Option 1", true));
+  radios.appendChild(buildRadio("Option 2", false));
+  radios.appendChild(buildRadio("Option 3", false));
+  controlRow.appendChild(radios);
+
+  // Toggles
+  var toggles = figma.createFrame();
+  toggles.name = "Toggles";
+  toggles.layoutMode = "VERTICAL";
+  toggles.itemSpacing = 12;
+  toggles.fills = [];
+  toggles.layoutSizingHorizontal = "HUG";
+  toggles.layoutSizingVertical = "HUG";
+  toggles.appendChild(createText("Toggles", 13, "#6B7280"));
+  toggles.appendChild(buildToggle("Notifications", true));
+  toggles.appendChild(buildToggle("Dark mode", false));
+  toggles.appendChild(buildToggle("Auto-save", true));
+  controlRow.appendChild(toggles);
+
+  s.appendChild(controlRow);
+  return s;
+}
+
+// ─── Spacing ─────────────────────────────────────────────
+
 function buildSpacingSection() {
   var s = figma.createFrame();
   s.name = "Spacing";
@@ -602,6 +928,7 @@ async function buildFullDesignSystem() {
   master.appendChild(buildButtonsSection());
   master.appendChild(buildCardsSection());
   master.appendChild(buildHorizontalCardsSection());
+  master.appendChild(buildInputsSection());
   master.appendChild(buildSpacingSection());
 
   master.layoutSizingHorizontal = "HUG";
@@ -876,8 +1203,10 @@ async function handleCommand(msg) {
         built = buildTypographySection();
       } else if (component === "spacing") {
         built = buildSpacingSection();
+      } else if (component === "inputs" || component === "form_inputs" || component === "forms") {
+        built = buildInputsSection();
       } else {
-        return { error: "Unknown component: " + component + ". Available: button, card, horizontal_card, colors, typography, spacing" };
+        return { error: "Unknown component: " + component + ". Available: button, card, horizontal_card, colors, typography, spacing, inputs" };
       }
 
       var compParent = getParentNode(params.parentId);

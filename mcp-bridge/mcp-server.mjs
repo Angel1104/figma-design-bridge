@@ -457,7 +457,7 @@ server.tool(
   "build_component",
   "Build a pre-defined design system component section.",
   {
-    component: z.enum(["button", "buttons", "card", "cards", "horizontal_card", "horizontal_cards", "colors", "typography", "spacing"]).describe("Component to build"),
+    component: z.enum(["button", "buttons", "card", "cards", "horizontal_card", "horizontal_cards", "colors", "typography", "spacing", "inputs", "form_inputs", "forms"]).describe("Component to build"),
     parentId: z.string().optional().describe("Parent node ID to append to"),
     layoutSizingHorizontal: z.enum(["FIXED", "HUG", "FILL"]).optional(),
     layoutSizingVertical: z.enum(["FIXED", "HUG", "FILL"]).optional(),
